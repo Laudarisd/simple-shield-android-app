@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/forest_background" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+        <TextView android:id="@+id/backButton" android:layout_width="wrap_content" android:layout_height="48dp" android:gravity="center_vertical" android:text="@string/back" android:textColor="@color/forest_accent" android:textSize="15sp" android:textStyle="bold" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/protection_filters" android:textColor="@color/forest_paper" android:textSize="32sp" android:textStyle="bold" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/filters_intro" android:textColor="@color/forest_muted" android:textSize="15sp" />
+        <TextView style="@style/ForestSectionLabel" android:text="@string/filter_categories" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_settings_group" android:orientation="vertical" android:padding="12dp">
+            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/adsSwitch" style="@style/ForestSwitch" android:checked="true" android:text="@string/ads" />
+        </LinearLayout>
+        <TextView style="@style/ForestSectionLabel" android:text="@string/custom_blocklist" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_settings_group" android:orientation="vertical" android:padding="16dp">
+            <EditText android:id="@+id/blockDomainInput" android:layout_width="match_parent" android:layout_height="52dp" android:hint="@string/domain_hint" android:inputType="textUri" android:singleLine="true" android:textColor="@color/forest_paper" android:textColorHint="@color/forest_muted" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/addBlockButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/add_block_rule" />
+            <TextView android:id="@+id/blockRulesText" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:textColor="@color/forest_muted" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/clearBlockRulesButton" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/clear_custom_rules" />
+        </LinearLayout>
+        <TextView style="@style/ForestSectionLabel" android:text="@string/never_block" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_settings_group" android:orientation="vertical" android:padding="16dp">
+            <EditText android:id="@+id/allowDomainInput" android:layout_width="match_parent" android:layout_height="52dp" android:hint="@string/domain_hint" android:inputType="textUri" android:singleLine="true" android:textColor="@color/forest_paper" android:textColorHint="@color/forest_muted" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/addAllowButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/add_allow_rule" />
+            <TextView android:id="@+id/allowRulesText" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="8dp" android:textColor="@color/forest_muted" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/clearAllowRulesButton" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/clear_allow_rules" />
+        </LinearLayout>
+        <TextView style="@style/ForestSectionLabel" android:text="@string/recent_blocks" />
+        <TextView android:id="@+id/recentBlocksText" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_settings_group" android:fontFamily="monospace" android:padding="16dp" android:textColor="@color/forest_muted" android:textSize="12sp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:gravity="center" android:text="@string/saved_automatically" android:textColor="@color/forest_muted" android:textSize="13sp" />
+    </LinearLayout>
+</ScrollView>

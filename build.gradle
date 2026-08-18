@@ -1,0 +1,12 @@
+// Top-level build file. Individual module build files live in app/build.gradle.
+//
+// NOTE ON VERSIONS: the Android Gradle Plugin / Kotlin plugin versions below
+// were current and stable as of when this project was written, but Android
+// Studio releases new compatible versions often. When you open this project,
+// Android Studio will very likely offer an "Update" prompt — accepting it is
+// normal and expected, not a sign anything here is wrong.
+plugins {
+    id 'com.android.application' version '9.3.1' apply false
+    id 'org.jetbrains.kotlin.android' version '2.4.10' apply false
+    id 'com.google.devtools.ksp' version '2.3.11' apply false
+}

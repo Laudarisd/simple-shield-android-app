@@ -1,0 +1,26 @@
+# Android/Gradle generated files
+.gradle/
+.kotlin/
+build/
+**/build/
+local.properties
+
+# Android Studio / IntelliJ local state
+.idea/
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS and local agent state
+.DS_Store
+**/.DS_Store
+.claude/
+.agents/
+.codex/
+
+# Signing material and packaged outputs
+*.jks
+*.keystore
+*.apk
+*.aab

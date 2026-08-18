@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App identity -->
+    <string name="app_name">Shield - Ad Blocker</string>
+
+    <!-- Main screen -->
+    <string name="status_protecting">Protecting this device</string>
+    <string name="status_stopped">Protection stopped</string>
+    <string name="status_protecting_short">Protected</string>
+    <string name="status_stopped_short">Stopped</string>
+    <string name="status_protecting_detail">Advertising domains are being blocked</string>
+    <string name="status_stopped_detail">Tap below to protect every app</string>
+    <string name="toggle_button_label">Ad blocking</string>
+    <string name="start_protection">Start protection</string>
+    <string name="stop_protection_button">Stop protection &amp; disconnect</string>
+    <string name="stop_protection">Stop</string>
+    <string name="pause_five">Pause 5 min</string>
+    <string name="pause_fifteen">Pause 15 min</string>
+    <string name="ads_blocked_label">ads blocked</string>
+    <string name="sponsored_blocked_label">sponsored blocked</string>
+    <string name="app_name_caps">SHIELD - AD BLOCKER</string>
+    <string name="filters">Filters</string>
+    <string name="settings">Settings</string>
+    <string name="back">‹  Back</string>
+    <string name="protection_filters">Protection filters</string>
+    <string name="filters_intro">Shield - Ad Blocker conservatively blocks advertising domains across apps and browsers.</string>
+    <string name="blocking_level">BLOCKING LEVEL</string>
+    <string name="balanced">Balanced · Recommended</string>
+    <string name="strict">Strict · Maximum blocking</string>
+    <string name="filter_categories">FILTER CATEGORIES</string>
+    <string name="ads">Ads</string>
+    <string name="trackers">Trackers</string>
+    <string name="malware_domains">Malware domains</string>
+    <string name="adult_content">Adult content</string>
+    <string name="saved_automatically">Changes are saved automatically on this device</string>
+    <string name="custom_blocklist">CUSTOM BLOCKLIST</string>
+    <string name="never_block">NEVER BLOCK</string>
+    <string name="domain_hint">example.com</string>
+    <string name="add_block_rule">Block domain</string>
+    <string name="add_allow_rule">Always allow domain</string>
+    <string name="clear_custom_rules">Clear custom blocklist</string>
+    <string name="clear_allow_rules">Clear allowlist</string>
+    <string name="invalid_domain">Enter a valid domain name</string>
+    <string name="none_added">None added</string>
+    <string name="recent_blocks">RECENTLY BLOCKED</string>
+    <string name="protection">PROTECTION</string>
+    <string name="privacy">PRIVACY</string>
+    <string name="about">ABOUT</string>
+    <string name="start_on_boot">Start protection after restart</string>
+    <string name="ipv6_protection">IPv6 leak protection</string>
+    <string name="local_stats">Keep anonymous stats on device</string>
+    <string name="status_notification">Protection status notification</string>
+    <string name="app_exclusions">APP COMPATIBILITY</string>
+    <string name="app_exclusions_intro">Excluded apps bypass Shield completely and use the normal internet connection.</string>
+    <string name="reconnect_required">Stop and start protection once to apply app changes.</string>
+    <string name="privacy_note_title">Private by design</string>
+    <string name="privacy_note">DNS filtering happens locally. Shield - Ad Blocker never sends your browsing history or app activity to us.</string>
+    <string name="version">Shield - Ad Blocker 1.0</string>
+    <string name="explainer_text">Shield - Ad Blocker blocks ad and tracker domains for your WHOLE device — every app and browser, not just Chrome — by filtering DNS lookups locally. It never sends your browsing data anywhere.</string>
+
+    <!-- Foreground service notification (shown persistently while active) -->
+    <string name="notification_channel_name">Ad blocking status</string>
+    <string name="notification_title">Shield - Ad Blocker is active</string>
+    <string name="notification_text">Blocking advertising domains for this device</string>
+</resources>

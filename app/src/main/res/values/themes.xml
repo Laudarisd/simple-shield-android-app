@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SimpleShield" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/forest_accent</item>
+        <item name="colorPrimaryDark">@color/forest_background</item>
+        <item name="colorAccent">@color/forest_accent</item>
+        <item name="colorControlActivated">@color/forest_accent</item>
+        <item name="android:navigationBarColor">@color/forest_background</item>
+        <item name="android:statusBarColor">@color/forest_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/forest_background</item>
+    </style>
+
+    <style name="ForestSectionLabel" parent="TextAppearance.MaterialComponents.Subtitle2">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">30dp</item>
+        <item name="android:layout_marginBottom">10dp</item>
+        <item name="android:textColor">@color/forest_accent_soft</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="ForestSwitch" parent="Widget.MaterialComponents.CompoundButton.Switch">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:textColor">@color/forest_paper</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="ForestOption" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">60dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:textColor">@color/forest_paper</item>
+        <item name="android:textSize">16sp</item>
+        <item name="buttonTint">@color/forest_accent</item>
+    </style>
+</resources>

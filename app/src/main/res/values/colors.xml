@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ink">#131A2B</color>
+    <color name="ink_raised">#1B2338</color>
+    <color name="hairline">#2B3550</color>
+    <color name="paper">#F4F1EA</color>
+    <color name="gold">#E4A94B</color>
+    <color name="teal">#4FB8A6</color>
+    <color name="off_gray">#6B7386</color>
+    <color name="forest_background">#06100B</color>
+    <color name="forest_surface">#0C2116</color>
+    <color name="forest_surface_raised">#122A1D</color>
+    <color name="forest_accent">#62DB86</color>
+    <color name="forest_accent_soft">#C7F3D1</color>
+    <color name="forest_paper">#F3F7F2</color>
+    <color name="forest_muted">#91A398</color>
+    <color name="forest_divider">#244333</color>
+    <color name="stop_red">#E36D68</color>
+</resources>

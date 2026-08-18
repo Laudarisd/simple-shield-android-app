@@ -1,0 +1,61 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.devtools.ksp'
+}
+
+android {
+    namespace 'com.simpleshield.adblocker'
+    compileSdk 37
+
+    defaultConfig {
+        applicationId "com.simpleshield.adblocker"
+        minSdk 26        // Android 8.0 — needed for notification channels used by the foreground service
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+    ksp {
+        arg("appfunctions:aggregateAppFunctions", "true")
+    }
+
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.19.0'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
+    implementation 'com.google.android.material:material:1.14.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.2'
+    implementation 'androidx.activity:activity-ktx:1.13.0'
+
+    implementation 'androidx.appfunctions:appfunctions:1.0.0-alpha10'
+    implementation 'androidx.appfunctions:appfunctions-service:1.0.0-alpha09'
+    ksp 'androidx.appfunctions:appfunctions-compiler:1.0.0-alpha10'
+
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+}

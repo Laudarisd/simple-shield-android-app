@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ic_shield_notification.xml
+
+  Android REQUIRES status-bar/notification icons to be simple, flat white
+  silhouettes on a transparent background (the system tints them itself) —
+  unlike the app's full-color launcher icon. This is a minimal shield shape
+  matching the app's branding.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFF">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,2 L20,5.2 V11 C20,16 16.5,20.1 12,22 C7.5,20.1 4,16 4,11 V5.2 Z" />
+</vector>
