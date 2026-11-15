@@ -1,114 +1,164 @@
-# Simple Shield (Android)
+# Shield - Ad Blocker for Android
 
-A native Android app that blocks ad/tracker domains **device-wide** — every
-app and browser, not just one — by filtering DNS lookups locally through a
-local VPN. No root required. Companion to the "Simple Shield" Chrome
-extension, sharing the same domain blocklist and branding.
+Shield is a native Android DNS blocker designed to reduce advertising and
+tracking requests across apps and browsers without root access. It uses a
+local, DNS-only `VpnService`; ordinary application traffic never enters the
+VPN interface.
 
-## How it actually works (read this — it explains what it can't do too)
+> **Project status:** Active development. The core blocker builds successfully,
+> passes Android lint, and has automated tests for DNS, packet, and rule logic.
+> Physical-device testing and Play Console setup are still required before a
+> public production release.
 
-Android doesn't let a normal app inspect other apps' network traffic. The
-one sanctioned way around that is `VpnService`: with the user's explicit
-permission, an app can become a lightweight local VPN, and Android routes
-traffic through it.
+## Highlights
 
-This app uses that ability for **one narrow purpose**: intercepting DNS
-lookups (the "what's the IP address for doubleclick.net?" step every
-connection starts with). It does this with a specific trick — it tells
-Android its own virtual address is the DNS server to use, but only adds a
-network *route* for that one address. Your actual web/video/app traffic
-never enters the tunnel at all; only DNS queries do.
+- Device-wide DNS filtering for apps and browsers
+- IPv4 and direct IPv6 UDP DNS support
+- More than 12,000 bundled offline domain rules
+- Automatic blocklist refresh with safe offline fallback
+- Custom block and allow rules
+- Per-app compatibility exclusions
+- Local blocked-request counters and recent activity
+- 24-hour protection session after each user activation
+- No root requirement
+- No advertising or analytics SDKs
+- No remote Shield VPN server
 
-For every DNS query:
-1. Read the domain being looked up.
-2. If it's a known ad/tracker domain → reply "this domain doesn't exist"
-   (NXDOMAIN). The requesting app never gets an IP to connect to.
-3. Otherwise → forward to a real DNS server (Cloudflare, 1.1.1.1) and relay
-   the real answer back. Normal browsing is unaffected.
+## How it works
 
-**Honest limitations:**
-- IPv4 and direct IPv6 UDP DNS are supported. DNS-over-HTTPS, DNS-over-TLS,
-  unusual IPv6 extension-header packets, and apps that connect directly to
-  hard-coded IP addresses can bypass domain filtering.
-- Ads served from the SAME domain as legitimate content (rather than a
-  dedicated ad-serving domain) won't be caught by DNS-level blocking — this
-  is a fundamental limit of the DNS-filtering approach itself, not specific
-  to this implementation. This is the same limitation every DNS-based
-  blocker (AdGuard, NextDNS, DNS66, etc.) has.
-- Only one VPN app can be active at a time on Android — using this means
-  you can't simultaneously use a different VPN (for privacy/geo-unblocking/
-  work) unless it explicitly supports chaining.
+Android does not offer ordinary apps a system-wide ad-blocking permission.
+Shield therefore uses Android's supported `VpnService` API to create a local
+DNS interface after the user approves the system VPN prompt.
 
-## Protection lifetime
+Shield installs routes only for its two synthetic DNS addresses. For each DNS
+request:
 
-Each user activation runs for up to 24 hours. Android always shows the VPN
-system indicator while active, and the persistent notification has a Stop
-action. Protection never silently starts after reboot.
+1. Shield validates and reads the requested domain.
+2. A known advertising domain receives an `NXDOMAIN` response.
+3. An allowed domain is forwarded to an upstream DNS resolver.
+4. The DNS response is returned to the requesting app.
 
-## Privacy boundary
+Web pages, messages, passwords, downloads, audio, video, and other application
+payloads continue over the device's normal connection. Shield does not read or
+route that content.
 
-Only packets addressed to Shield's two synthetic DNS addresses are routed into
-the local VPN. Normal app traffic—including web content, messages, passwords,
-files, audio, and video—uses the device's regular connection and never enters
-Shield. The app contains no advertising or analytics SDK.
+Android displays its VPN key indicator while protection is active. This is a
+mandatory system security feature and cannot be hidden by the app.
 
-## Verifying the low-level code
+## Privacy
 
-The riskiest code here is low-level: parsing raw DNS messages and building
-correctly-checksummed IPv4/UDP packets by hand. I don't have an Android
-build toolchain in the environment I built this in, so I verified this
-logic in three steps before trusting it:
-1. Implemented and tested the exact algorithm in Python (fast to iterate).
-2. Translated it to Kotlin and **actually compiled and ran it** standalone
-   (outside Android — this logic has no Android dependencies) against the
-   same test cases.
-3. Cross-checked that the Python and Kotlin implementations produce
-   **byte-for-byte identical output** for the same input.
+Shield is designed around a narrow traffic boundary:
 
-The corresponding tests live in `app/src/test/` — run them yourself anytime
-with `./gradlew test` in Android Studio.
+- Only DNS packets addressed to Shield enter the local VPN.
+- Block statistics and recent domains are stored only in private app storage.
+- Local statistics can be disabled in Settings.
+- App data is excluded from Android backup and device transfer.
+- No advertising or analytics SDK is included.
+- Shield does not operate a remote VPN or data-collection server.
 
-The project includes unit tests for DNS parsing/error responses, domain
-matching, and IPv4/IPv6 UDP packet parsing/building. VPN lifecycle and network
-behavior must also be tested on physical Android devices before publishing.
+See [PRIVACY_POLICY.md](PRIVACY_POLICY.md) for the publication template. Its
+publisher name, contact address, and effective date must be completed before
+release.
 
-## Building this
+## Limitations
 
-1. Install Android Studio (free, from developer.android.com).
-2. Open this folder as a project (File → Open).
-3. Let Gradle sync.
-4. Run `./gradlew testDebugUnitTest lintDebug assembleDebug`.
-5. Run the app on an emulator or real device (Run ▶ button). Tap the
-   toggle, grant the VPN permission prompt, and try browsing — check
-   Logcat (filter: `SimpleShieldVpn`) to see blocked domains logged live.
+DNS filtering cannot safely remove every advertisement:
 
-## Publishing to the Play Store — please read before you submit
+- Ads served from the same domain as legitimate content cannot be separated at
+  DNS level without also breaking the content.
+- Apps using private DNS-over-HTTPS, DNS-over-TLS, hard-coded IP addresses, or
+  cached connections may bypass local DNS filtering.
+- Embedded sponsor segments inside videos are part of the video stream and
+  cannot be removed by DNS filtering.
+- Only one Android VPN can be active for a user at a time.
+- IPv6 extension-header packets outside the supported direct UDP path are
+  rejected rather than inspected.
 
-- **A public privacy-policy URL is mandatory.** Start from `PRIVACY_POLICY.md`,
-  replace its placeholders, publish it on a stable public HTTPS page, and use
-  that URL in Play Console and inside the store listing.
-- **VPN-category apps get extra review scrutiny.** Google reviews apps
-  using `VpnService` more carefully than average, and may ask clarifying
-  questions about what the VPN does. Being able to point to this app's
-  actual behavior (DNS filtering only, open about it, no data collection)
-  is exactly what that review is checking for.
-- You'll need a **Google Play Developer account** (one-time $25 fee) —
-  something I can't create on your behalf.
-- Fill in `app/build.gradle`'s `applicationId` with your own reverse-domain
-  identifier before publishing if `com.simpleshield.adblocker` isn't yours
-  to use.
+The rules intentionally favor app compatibility over aggressive blocking.
 
-## Files
+## Requirements
 
+- Android Studio with JDK 17
+- Android SDK 37
+- Android 8.0/API 26 or newer device or emulator
+
+## Build and verify
+
+Clone the repository and open its root directory in Android Studio, or use the
+Gradle wrapper:
+
+```bash
+./gradlew testDebugUnitTest lintDebug assembleDebug
 ```
-app/src/main/java/com/simpleshield/adblocker/
-  MainActivity.kt          Start/stop UI, permission flow, blocked count
-  AdBlockVpnService.kt      The VPN service — the actual ad-blocking logic
-  DnsMessageLogic.kt        Pure DNS message parsing/building (tested)
-  IpPacketLogic.kt          Pure IPv4/UDP packet construction (tested)
-  DomainBlocklist.kt        Bundled rules and secure update workflow
-  BlockedDomainList.kt      Curated category rules
-app/src/test/...            JUnit tests mirroring the standalone verification
-app/src/main/res/           Layout, strings, colors, icons
-generate_launcher_icons.py  Regenerates the app icons if you want to restyle
+
+The debug APK is generated at:
+
+```text
+app/build/outputs/apk/debug/app-debug.apk
 ```
+
+Verify the optimized release variant with:
+
+```bash
+./gradlew lintRelease bundleRelease
+```
+
+Production publishing requires a private upload key. Never commit keystores,
+key passwords, service-account credentials, or Play Console secrets.
+
+## Testing on a device
+
+1. Install and open Shield.
+2. Tap **Start protection**.
+3. Accept Android's VPN permission dialog.
+4. Confirm that ordinary browsing and installed apps still work.
+5. Confirm that known advertising domains appear under recently blocked.
+6. Test Stop, Wi-Fi/mobile handoff, reconnect, IPv4, IPv6, and device sleep.
+
+The VPN lifecycle and network handoff behavior must be validated on physical
+devices before publishing. See [PLAY_STORE_CHECKLIST.md](PLAY_STORE_CHECKLIST.md)
+for the full release checklist.
+
+## Project structure
+
+```text
+app/src/main/
+├── AndroidManifest.xml              Permissions and Android components
+├── assets/
+│   ├── production_domains.txt       Bundled offline domain rules
+│   └── THIRD_PARTY_NOTICES.txt      Rule-list licenses and attribution
+├── java/com/simpleshield/adblocker/
+│   ├── AdBlockVpnService.kt         VPN lifecycle and DNS forwarding
+│   ├── DnsMessageLogic.kt           Validated DNS parsing and responses
+│   ├── IpPacketLogic.kt             IPv4/IPv6 UDP parsing and construction
+│   ├── DomainBlocklist.kt           Bundled and refreshed rule management
+│   ├── DomainRulesStore.kt          User block and allow rules
+│   ├── MainActivity.kt              Protection controls and status
+│   ├── FiltersActivity.kt           Filter and domain-rule UI
+│   └── SettingsActivity.kt          Privacy, theme, and app exclusions
+└── res/                             Layouts, themes, strings, and artwork
+
+app/src/test/                        Unit tests
+PRIVACY_POLICY.md                    Publication privacy-policy template
+PLAY_STORE_CHECKLIST.md              Release and device-test checklist
+LICENSE                              First-party proprietary terms
+```
+
+## Blocklist attribution
+
+Bundled rules combine and reformat data from AdAway, StevenBlack, hostsVN, and
+Tiuxo. Each source remains subject to its own license. Full acknowledgements
+are included in
+[`app/src/main/assets/THIRD_PARTY_NOTICES.txt`](app/src/main/assets/THIRD_PARTY_NOTICES.txt).
+
+## License
+
+This repository is **source-available, not open source**. The original Shield
+code, branding, design, and artwork are proprietary and all rights are
+reserved. Viewing this public repository does not grant permission to copy,
+modify, redistribute, sell, or publish the first-party materials.
+
+See [LICENSE](LICENSE) for the complete terms. Third-party components and
+blocklists remain governed by their respective licenses.
+
+Copyright © 2026 Sudip Laudari. All rights reserved.

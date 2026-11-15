@@ -2,10 +2,9 @@
 
 ## Before creating the release
 
-- Replace all placeholders in `PRIVACY_POLICY.md` and publish it at a stable
-  public HTTPS URL.
-- Choose and verify the final `applicationId`; it cannot be changed after the
-  first Play release.
+- Publish `PRIVACY_POLICY.md` at a stable public HTTPS URL.
+- Verify the permanent application ID `io.github.laudarisd.shield`; it cannot
+  be changed after the first Play release.
 - Set a new `versionCode` for every upload and a user-facing `versionName`.
 - Create a private upload keystore and configure release signing outside Git.
 - Run `./gradlew testDebugUnitTest lintRelease bundleRelease`.

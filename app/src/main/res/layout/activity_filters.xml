@@ -24,6 +24,5 @@
         </LinearLayout>
         <TextView style="@style/ForestSectionLabel" android:text="@string/recent_blocks" />
         <TextView android:id="@+id/recentBlocksText" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_settings_group" android:fontFamily="monospace" android:padding="16dp" android:textColor="@color/forest_muted" android:textSize="12sp" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:gravity="center" android:text="@string/saved_automatically" android:textColor="@color/forest_muted" android:textSize="13sp" />
     </LinearLayout>
 </ScrollView>

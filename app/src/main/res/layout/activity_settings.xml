@@ -3,7 +3,6 @@
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/screen_horizontal_padding" android:paddingTop="10dp" android:paddingEnd="@dimen/screen_horizontal_padding" android:paddingBottom="28dp">
         <TextView android:id="@+id/backButton" android:layout_width="wrap_content" android:layout_height="48dp" android:gravity="center_vertical" android:text="@string/back" android:textColor="@color/forest_accent" android:textSize="15sp" android:textStyle="bold" />
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/settings" android:textColor="@color/forest_paper" android:textSize="30sp" android:textStyle="bold" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="@string/settings_intro" android:textColor="@color/forest_muted" android:textSize="14sp" />
         <TextView style="@style/ForestSectionLabel" android:text="@string/appearance" />
         <RadioGroup android:id="@+id/themeOptions" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_settings_group" android:orientation="vertical" android:paddingStart="10dp" android:paddingEnd="10dp">
             <RadioButton android:id="@+id/forestThemeOption" style="@style/ForestOption" android:text="@string/theme_forest" />
@@ -14,15 +13,19 @@
             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/localStatsSwitch" style="@style/ForestSwitch" android:checked="true" android:text="@string/local_stats" />
         </LinearLayout>
         <TextView style="@style/ForestSectionLabel" android:text="@string/app_exclusions" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/app_exclusions_intro" android:textColor="@color/forest_muted" android:textSize="14sp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="horizontal">
+            <com.google.android.material.button.MaterialButton android:id="@+id/excludeAllAppsButton" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="48dp" android:layout_marginEnd="6dp" android:layout_weight="1" android:text="@string/exclude_all_apps" android:textAllCaps="false" android:textColor="@color/forest_paper" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/clearExcludedAppsButton" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="48dp" android:layout_marginStart="6dp" android:layout_weight="1" android:text="@string/clear_excluded_apps" android:textAllCaps="false" android:textColor="@color/forest_paper" />
+        </LinearLayout>
         <TextView android:id="@+id/reconnectNotice" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/reconnect_required" android:textColor="@color/forest_accent" android:textStyle="bold" android:visibility="gone" />
         <LinearLayout android:id="@+id/excludedAppsContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:background="@drawable/bg_settings_group" android:orientation="vertical" android:paddingStart="10dp" android:paddingEnd="10dp" />
         <TextView style="@style/ForestSectionLabel" android:text="@string/about" />
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:background="@drawable/bg_settings_group" android:orientation="vertical" android:padding="16dp">
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/privacy_note_title" android:textColor="@color/forest_paper" android:textSize="16sp" android:textStyle="bold" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="@string/privacy_note" android:textColor="@color/forest_muted" android:textSize="14sp" />
-            <TextView android:id="@+id/blocklistStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="18dp" android:textColor="@color/forest_paper" android:textSize="14sp" android:textStyle="bold" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/about_app_title" android:textColor="@color/forest_paper" android:textSize="18sp" android:textStyle="bold" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:text="@string/about_app_summary" android:textColor="@color/forest_muted" android:textSize="14sp" />
+            <TextView android:id="@+id/blocklistStatus" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:textColor="@color/forest_paper" android:textSize="14sp" android:textStyle="bold" />
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:autoLink="web" android:linksClickable="true" android:text="@string/blocklist_attribution" android:textColor="@color/forest_muted" android:textColorLink="@color/forest_accent" android:textSize="12sp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:text="@string/proprietary_license_notice" android:textColor="@color/forest_muted" android:textSize="12sp" />
             <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/version" android:textColor="@color/forest_accent" android:textSize="13sp" />
         </LinearLayout>
     </LinearLayout>

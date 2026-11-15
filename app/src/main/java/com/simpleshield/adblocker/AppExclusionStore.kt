@@ -14,4 +14,12 @@ object AppExclusionStore {
         if (excluded) updated.add(packageName) else updated.remove(packageName)
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putStringSet(KEY, updated).apply()
     }
+
+    /** Replaces the exclusion set in one atomic preference update. */
+    fun replaceAll(context: Context, packageNames: Set<String>) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putStringSet(KEY, packageNames.toSet())
+            .apply()
+    }
 }

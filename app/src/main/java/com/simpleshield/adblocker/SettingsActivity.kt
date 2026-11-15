@@ -10,6 +10,7 @@ import com.simpleshield.adblocker.databinding.ActivitySettingsBinding
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
+    private var compatibleAppPackages: Set<String> = emptySet()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         ThemePreference.apply(this)
@@ -37,6 +38,14 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
         binding.localStatsSwitch.setOnCheckedChangeListener { _, _ -> save() }
+        binding.excludeAllAppsButton.setOnClickListener {
+            AppExclusionStore.replaceAll(this, compatibleAppPackages)
+            showReconnectNoticeAndRefreshApps()
+        }
+        binding.clearExcludedAppsButton.setOnClickListener {
+            AppExclusionStore.replaceAll(this, emptySet())
+            showReconnectNoticeAndRefreshApps()
+        }
         populateAppExclusions()
         binding.backButton.setOnClickListener { finish() }
     }
@@ -47,6 +56,7 @@ class SettingsActivity : AppCompatActivity() {
             .filter { it.activityInfo.packageName != packageName }
             .distinctBy { it.activityInfo.packageName }
             .sortedBy { it.loadLabel(packageManager).toString().lowercase() }
+        compatibleAppPackages = apps.mapTo(mutableSetOf()) { it.activityInfo.packageName }
         val excluded = AppExclusionStore.packages(this)
         val horizontalPadding = (8 * resources.displayMetrics.density).toInt()
 
@@ -65,5 +75,10 @@ class SettingsActivity : AppCompatActivity() {
                 }
             })
         }
+    }
+
+    private fun showReconnectNoticeAndRefreshApps() {
+        binding.reconnectNotice.visibility = View.VISIBLE
+        populateAppExclusions()
     }
 }

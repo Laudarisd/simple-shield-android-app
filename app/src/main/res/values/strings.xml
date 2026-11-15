@@ -19,7 +19,6 @@
     <string name="app_name_caps">SHIELD - AD BLOCKER</string>
     <string name="filters">Filters</string>
     <string name="settings">Settings</string>
-    <string name="settings_intro">Manage appearance, startup, privacy, and app compatibility.</string>
     <string name="back">‹  Back</string>
     <string name="protection_filters">Protection filters</string>
     <string name="filters_intro">Shield - Ad Blocker conservatively blocks advertising domains across apps and browsers.</string>
@@ -31,7 +30,6 @@
     <string name="trackers">Trackers</string>
     <string name="malware_domains">Malware domains</string>
     <string name="adult_content">Adult content</string>
-    <string name="saved_automatically">Changes are saved automatically on this device</string>
     <string name="custom_blocklist">CUSTOM BLOCKLIST</string>
     <string name="never_block">NEVER BLOCK</string>
     <string name="domain_hint">example.com</string>
@@ -53,12 +51,14 @@
     <string name="local_stats">Keep anonymous stats on device</string>
     <string name="status_notification">Protection status notification</string>
     <string name="app_exclusions">APP COMPATIBILITY</string>
-    <string name="app_exclusions_intro">Excluded apps bypass Shield completely and use the normal internet connection.</string>
+    <string name="exclude_all_apps">Select all</string>
+    <string name="clear_excluded_apps">Clear all</string>
     <string name="reconnect_required">Stop and start protection once to apply app changes.</string>
-    <string name="privacy_note_title">Private by design</string>
-    <string name="privacy_note">Only DNS requests are filtered. Web pages, messages, passwords, files, and other app traffic never enter Shield’s VPN tunnel. No advertising or analytics SDKs are included.</string>
+    <string name="about_app_title">Shield - Ad Blocker</string>
+    <string name="about_app_summary">Private, on-device DNS protection for apps and browsers.</string>
     <string name="blocklist_status">%,d active protection rules · updated automatically</string>
-    <string name="blocklist_attribution">Open-source rules: AdAway (CC BY 3.0), StevenBlack (MIT), hostsVN (MIT), and Tiuxo (CC BY 4.0). Lists are combined and reformatted; full notices are included with the app.</string>
+    <string name="blocklist_attribution">Open-source licenses and notices are included with the app.</string>
+    <string name="proprietary_license_notice">Copyright © 2026 Sudip Laudari. All rights reserved. Unauthorized copying, modification, or redistribution is prohibited.</string>
     <string name="version">Shield - Ad Blocker 1.0</string>
     <string name="explainer_text">Shield blocks known advertising domains across apps and browsers by filtering DNS requests locally. It never reads or routes normal app and web content.</string>
 

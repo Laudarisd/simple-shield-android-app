@@ -1,0 +1,21 @@
+Shield - Ad Blocker Proprietary License
+
+Copyright (c) 2026 Sudip Laudari. All rights reserved.
+
+The original source code, application design, branding, artwork, and other
+first-party materials in this repository are proprietary. No permission is
+granted to copy, modify, publish, distribute, sublicense, sell, reverse
+engineer, or create derivative works from those materials without prior
+written permission from the copyright owner, except where applicable law
+expressly permits otherwise.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT
+OWNER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE
+SOFTWARE OR ITS USE.
+
+Third-party components, domain lists, libraries, and other materials remain
+subject to their respective licenses. Their notices are provided in
+app/src/main/assets/THIRD_PARTY_NOTICES.txt and are not replaced or restricted
+by this proprietary license.

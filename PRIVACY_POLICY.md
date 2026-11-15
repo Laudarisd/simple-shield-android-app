@@ -1,6 +1,6 @@
 # Shield - Ad Blocker Privacy Policy
 
-Last updated: [DATE BEFORE PUBLISHING]
+Last updated: November 15, 2026
 
 Shield - Ad Blocker is a local DNS-filtering application. It uses Android's
 VPN service only to receive DNS requests addressed to its local DNS endpoint.
@@ -31,6 +31,6 @@ information from anyone.
 ## Changes and contact
 
 Material changes will be reflected on this page with a new effective date.
-Questions can be sent to: [YOUR SUPPORT EMAIL]
+Questions can be sent to: appstoreproduct12@gmail.com
 
-Developer/publisher: [YOUR LEGAL OR BUSINESS NAME]
+Developer/publisher: Sudip Laudari
