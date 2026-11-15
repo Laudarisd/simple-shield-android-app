@@ -9,7 +9,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.VpnService
-import android.os.Build
 import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.util.Log
@@ -56,6 +55,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * All the tricky byte-level packet math (checksums, header parsing) lives
  * in DnsMessageLogic.kt and IpPacketLogic.kt, which were tested separately
  * before being used here — this file just wires them together.
+ *
+ * Protection auto-stops 24 hours after an explicit user activation.
  */
 class AdBlockVpnService : VpnService() {
 
@@ -65,6 +66,8 @@ class AdBlockVpnService : VpnService() {
         // Our own fake network, used only inside this VPN tunnel.
         private const val VPN_INTERFACE_ADDRESS = "10.111.222.2"
         private const val VPN_DNS_ADDRESS = "10.111.222.1"
+        private const val VPN_INTERFACE_ADDRESS_V6 = "fd00:1:fd00:1::2"
+        private const val VPN_DNS_ADDRESS_V6 = "fd00:1:fd00:1::1"
         private const val VPN_INTERFACE_PREFIX_LENGTH = 32
 
         // Public fallbacks are only used when the DNS servers supplied by the
@@ -91,7 +94,6 @@ class AdBlockVpnService : VpnService() {
         const val ACTION_SERVICE_STATE_CHANGED = "com.simpleshield.adblocker.SERVICE_STATE_CHANGED"
         const val EXTRA_SERVICE_ACTIVE = "service_active"
         const val ACTION_STOP_SERVICE = "com.simpleshield.adblocker.STOP_SERVICE"
-        const val ACTION_PAUSE_SERVICE = "com.simpleshield.adblocker.PAUSE_SERVICE"
 
         // MainActivity and this service live in the same app process. This
         // is the authoritative live-state check when the Activity is rebuilt.
@@ -126,18 +128,8 @@ class AdBlockVpnService : VpnService() {
     private val vpnWriteLock = Any()
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_PAUSE_SERVICE) {
-            stopBlocking()
-            stopSelf()
-            return START_NOT_STICKY
-        }
         if (intent?.action == ACTION_STOP_SERVICE) {
-            getSharedPreferences("app_settings", MODE_PRIVATE)
-                .edit()
-                .putBoolean("start_on_boot", false)
-                .apply()
             stopBlocking()
-            ProtectionPauseScheduler.cancel(this)
             stopSelf()
             return START_NOT_STICKY
         }
@@ -170,6 +162,8 @@ class AdBlockVpnService : VpnService() {
         // own synthetic 10.111.222.1 address and unnecessarily force every
         // allowed lookup through a public fallback.
         physicalDnsEndpoints = readPhysicalDnsEndpoints()
+        DomainBlocklist.load(this)
+        DomainBlocklist.updateIfDue(this)
         lastDnsEndpointRefreshElapsedMs = SystemClock.elapsedRealtime()
         val establishedInterface = buildVpnInterface()
         if (establishedInterface == null) {
@@ -181,6 +175,7 @@ class AdBlockVpnService : VpnService() {
         isServiceRunning.set(true)
         serviceInstanceActive.set(true)
         publishServiceState(active = true)
+        ProtectionAutoOffScheduler.schedule(this)
 
         Thread({ runPacketReadLoop(establishedInterface) }, "SimpleShield-PacketLoop").start()
         Log.i(LOG_TAG, "Ad blocking started.")
@@ -190,14 +185,12 @@ class AdBlockVpnService : VpnService() {
      * to run as a foreground service. Tapping it reopens the app. */
     private fun buildForegroundNotification(): Notification {
         val notificationManager = getSystemService(NotificationManager::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                NOTIFICATION_CHANNEL_ID,
-                getString(R.string.notification_channel_name),
-                NotificationManager.IMPORTANCE_LOW, // low = no sound/heads-up, just a quiet status icon
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
+        val channel = NotificationChannel(
+            NOTIFICATION_CHANNEL_ID,
+            getString(R.string.notification_channel_name),
+            NotificationManager.IMPORTANCE_LOW,
+        )
+        notificationManager.createNotificationChannel(channel)
 
         val openAppIntent = PendingIntent.getActivity(
             this, 0,
@@ -225,6 +218,7 @@ class AdBlockVpnService : VpnService() {
         if (!hasCompletedShutdown.compareAndSet(false, true)) return
         isServiceRunning.set(false)
         serviceInstanceActive.set(false)
+        ProtectionAutoOffScheduler.cancel(this)
         dnsExecutor.shutdownNow()
         try {
             vpnInterface?.close()
@@ -257,8 +251,11 @@ class AdBlockVpnService : VpnService() {
             val builder = Builder()
                 .setSession(getString(R.string.app_name))
                 .addAddress(VPN_INTERFACE_ADDRESS, VPN_INTERFACE_PREFIX_LENGTH)
+                .addAddress(VPN_INTERFACE_ADDRESS_V6, 128)
                 .addDnsServer(VPN_DNS_ADDRESS)
+                .addDnsServer(VPN_DNS_ADDRESS_V6)
                 .addRoute(VPN_DNS_ADDRESS, VPN_INTERFACE_PREFIX_LENGTH)
+                .addRoute(VPN_DNS_ADDRESS_V6, 128)
                 .setMtu(1500)
                 .setBlocking(true)
             AppExclusionStore.packages(this).forEach { packageName ->
@@ -303,7 +300,7 @@ class AdBlockVpnService : VpnService() {
     }
 
     private fun handleIncomingPacket(packetBytes: ByteArray, outputStream: FileOutputStream) {
-        val parsedPacket = IpPacketLogic.parseIpv4UdpPacket(packetBytes)
+        val parsedPacket = IpPacketLogic.parseUdpPacket(packetBytes)
         if (parsedPacket.destPort != DNS_PORT) return // not a DNS query; ignore
 
         val queriedDomain = DnsMessageLogic.extractQueriedDomain(parsedPacket.udpPayload)
@@ -316,6 +313,7 @@ class AdBlockVpnService : VpnService() {
             !adBlockingEnabled || isAllowedByUser -> null
             isCustomBlocked -> BlockedDomainList.Category.ADS
             else -> BlockedDomainList.categorize(queriedDomain)
+                ?: if (DomainBlocklist.matches(this, queriedDomain)) BlockedDomainList.Category.ADS else null
         }
         if (category != null) {
             Log.d(LOG_TAG, "Blocked ($category): $queriedDomain")
@@ -325,6 +323,7 @@ class AdBlockVpnService : VpnService() {
             }
             sendBroadcast(
                 Intent(ACTION_DOMAIN_BLOCKED)
+                    .setPackage(packageName)
                     .putExtra("domain", queriedDomain)
                     .putExtra("category", category.name),
             )
@@ -372,6 +371,15 @@ class AdBlockVpnService : VpnService() {
             }
         }
         Log.w(LOG_TAG, "All upstream DNS servers failed", lastError)
+        // Return SERVFAIL instead of making the requesting app wait for its
+        // own timeout. Apps can then retry or apply their normal fallback.
+        runCatching {
+            writeDnsResponseToVpn(
+                parsedPacket,
+                DnsMessageLogic.buildErrorResponse(parsedPacket.udpPayload, responseCode = 2),
+                outputStream,
+            )
+        }.onFailure { Log.w(LOG_TAG, "Could not return DNS failure response", it) }
         // Force the next lookup to rediscover the physical network. This is
         // important when Wi-Fi/mobile changed during the current request.
         // Protection stays on regardless — only the user's own Stop tap
@@ -439,7 +447,7 @@ class AdBlockVpnService : VpnService() {
         // Source and destination are SWAPPED relative to the query: the
         // reply comes FROM where the query was addressed TO, and goes TO
         // where the query came FROM.
-        val responsePacket = IpPacketLogic.buildIpv4UdpPacket(
+        val responsePacket = IpPacketLogic.buildUdpPacket(
             sourceIp = originalQuery.destIp,
             destIp = originalQuery.sourceIp,
             sourcePort = originalQuery.destPort,

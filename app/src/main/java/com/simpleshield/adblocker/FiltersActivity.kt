@@ -10,9 +10,11 @@ class FiltersActivity : AppCompatActivity() {
     private lateinit var binding: ActivityFiltersBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemePreference.apply(this)
         super.onCreate(savedInstanceState)
         binding = ActivityFiltersBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        UiInsets.apply(binding.root)
 
         val preferences = getSharedPreferences("protection_options", MODE_PRIVATE)
         binding.adsSwitch.isChecked = preferences.getBoolean("ads", true)

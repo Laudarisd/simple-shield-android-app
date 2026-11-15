@@ -2,6 +2,7 @@ package com.simpleshield.adblocker
 
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 /**
@@ -47,5 +48,32 @@ class IpPacketLogicTest {
         )
         val actualHex = packet.joinToString("") { "%02x".format(it) }
         assertEquals(expectedHex, actualHex)
+    }
+
+    @Test
+    fun `IPv6 UDP packet round-trips`() {
+        val payload = "ipv6-dns".toByteArray()
+        val packet = IpPacketLogic.buildUdpPacket("fd00:1::2", "fd00:1::1", 40000, 53, payload)
+        val parsed = IpPacketLogic.parseUdpPacket(packet)
+        assertEquals(40000, parsed.sourcePort)
+        assertEquals(53, parsed.destPort)
+        assertArrayEquals(payload, parsed.udpPayload)
+    }
+
+    @Test
+    fun `truncated IPv4 packet is rejected`() {
+        val packet = IpPacketLogic.buildIpv4UdpPacket("10.0.0.1", "10.0.0.2", 1234, 53, byteArrayOf(1))
+        assertThrows(IllegalArgumentException::class.java) {
+            IpPacketLogic.parseIpv4UdpPacket(packet.copyOf(packet.size - 1))
+        }
+    }
+
+    @Test
+    fun `fragmented IPv4 packet is rejected`() {
+        val packet = IpPacketLogic.buildIpv4UdpPacket("10.0.0.1", "10.0.0.2", 1234, 53, byteArrayOf(1))
+        packet[6] = 0x20 // more-fragments flag
+        assertThrows(IllegalArgumentException::class.java) {
+            IpPacketLogic.parseIpv4UdpPacket(packet)
+        }
     }
 }

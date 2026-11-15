@@ -1,0 +1,21 @@
+Simple Shield blocklist notices
+
+The bundled and downloaded domain set combines and reformats these sources:
+
+AdAway default blocklist
+https://github.com/AdAway/adaway.github.io
+Licensed under CC BY 3.0: https://creativecommons.org/licenses/by/3.0/
+
+StevenBlack ad-hoc hosts
+https://github.com/StevenBlack/hosts/tree/master/data/StevenBlack
+Licensed under the MIT License.
+
+hostsVN
+https://github.com/bigdargon/hostsVN
+Licensed under the MIT License.
+
+Tiuxo ads hosts
+https://github.com/tiuxo/hosts
+Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
+
+The source lists are normalized, combined, and deduplicated for DNS matching.

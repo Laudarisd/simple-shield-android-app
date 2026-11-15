@@ -27,9 +27,9 @@ For every DNS query:
    the real answer back. Normal browsing is unaffected.
 
 **Honest limitations:**
-- This only intercepts **IPv4** DNS traffic. Most Android networks still
-  prefer/fall back to IPv4 DNS, but on an IPv6-only network this app
-  wouldn't see those lookups. A known, documented gap, not a bug.
+- IPv4 and direct IPv6 UDP DNS are supported. DNS-over-HTTPS, DNS-over-TLS,
+  unusual IPv6 extension-header packets, and apps that connect directly to
+  hard-coded IP addresses can bypass domain filtering.
 - Ads served from the SAME domain as legitimate content (rather than a
   dedicated ad-serving domain) won't be caught by DNS-level blocking — this
   is a fundamental limit of the DNS-filtering approach itself, not specific
@@ -39,7 +39,20 @@ For every DNS query:
   you can't simultaneously use a different VPN (for privacy/geo-unblocking/
   work) unless it explicitly supports chaining.
 
-## How I verified the trickiest part without an Android device
+## Protection lifetime
+
+Each user activation runs for up to 24 hours. Android always shows the VPN
+system indicator while active, and the persistent notification has a Stop
+action. Protection never silently starts after reboot.
+
+## Privacy boundary
+
+Only packets addressed to Shield's two synthetic DNS addresses are routed into
+the local VPN. Normal app traffic—including web content, messages, passwords,
+files, audio, and video—uses the device's regular connection and never enters
+Shield. The app contains no advertising or analytics SDK.
+
+## Verifying the low-level code
 
 The riskiest code here is low-level: parsing raw DNS messages and building
 correctly-checksummed IPv4/UDP packets by hand. I don't have an Android
@@ -55,29 +68,25 @@ logic in three steps before trusting it:
 The corresponding tests live in `app/src/test/` — run them yourself anytime
 with `./gradlew test` in Android Studio.
 
-The parts I *couldn't* verify this way (the `VpnService`/notification/UI
-code, which needs the real Android SDK) are written to closely follow
-documented, standard Android APIs, but you should still test on a real
-device or emulator before publishing — see below.
+The project includes unit tests for DNS parsing/error responses, domain
+matching, and IPv4/IPv6 UDP packet parsing/building. VPN lifecycle and network
+behavior must also be tested on physical Android devices before publishing.
 
 ## Building this
 
 1. Install Android Studio (free, from developer.android.com).
 2. Open this folder as a project (File → Open).
-3. Let Gradle sync — it will likely prompt to update the Android
-   Gradle Plugin/Kotlin versions in `build.gradle`; accepting is normal.
-4. Run `./gradlew test` (or the "Run Tests" button) to re-verify the logic
-   tests pass in the real toolchain.
+3. Let Gradle sync.
+4. Run `./gradlew testDebugUnitTest lintDebug assembleDebug`.
 5. Run the app on an emulator or real device (Run ▶ button). Tap the
    toggle, grant the VPN permission prompt, and try browsing — check
    Logcat (filter: `SimpleShieldVpn`) to see blocked domains logged live.
 
 ## Publishing to the Play Store — please read before you submit
 
-- **A privacy policy is mandatory.** Any app requesting sensitive
-  permissions (VPN service counts) must link a privacy policy in its Play
-  Console listing. This app collects nothing and sends nothing anywhere —
-  say so plainly in that policy.
+- **A public privacy-policy URL is mandatory.** Start from `PRIVACY_POLICY.md`,
+  replace its placeholders, publish it on a stable public HTTPS page, and use
+  that URL in Play Console and inside the store listing.
 - **VPN-category apps get extra review scrutiny.** Google reviews apps
   using `VpnService` more carefully than average, and may ask clarifying
   questions about what the VPN does. Being able to point to this app's
@@ -93,11 +102,12 @@ device or emulator before publishing — see below.
 
 ```
 app/src/main/java/com/simpleshield/adblocker/
-  MainActivity.kt          The one screen: on/off toggle + blocked count
+  MainActivity.kt          Start/stop UI, permission flow, blocked count
   AdBlockVpnService.kt      The VPN service — the actual ad-blocking logic
   DnsMessageLogic.kt        Pure DNS message parsing/building (tested)
   IpPacketLogic.kt          Pure IPv4/UDP packet construction (tested)
-  BlockedDomainList.kt      The domain blocklist + matching logic (tested)
+  DomainBlocklist.kt        Bundled rules and secure update workflow
+  BlockedDomainList.kt      Curated category rules
 app/src/test/...            JUnit tests mirroring the standalone verification
 app/src/main/res/           Layout, strings, colors, icons
 generate_launcher_icons.py  Regenerates the app icons if you want to restyle

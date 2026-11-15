@@ -7,13 +7,13 @@
     <color name="gold">#E4A94B</color>
     <color name="teal">#4FB8A6</color>
     <color name="off_gray">#6B7386</color>
-    <color name="forest_background">#06100B</color>
-    <color name="forest_surface">#0C2116</color>
-    <color name="forest_surface_raised">#122A1D</color>
-    <color name="forest_accent">#62DB86</color>
-    <color name="forest_accent_soft">#C7F3D1</color>
-    <color name="forest_paper">#F3F7F2</color>
-    <color name="forest_muted">#91A398</color>
-    <color name="forest_divider">#244333</color>
+    <color name="forest_background">#F7F7F7</color>
+    <color name="forest_surface">#FFFFFF</color>
+    <color name="forest_surface_raised">#EFEFEF</color>
+    <color name="forest_accent">#287A45</color>
+    <color name="forest_accent_soft">#365E43</color>
+    <color name="forest_paper">#202124</color>
+    <color name="forest_muted">#686A6D</color>
+    <color name="forest_divider">#D7D9DC</color>
     <color name="stop_red">#E36D68</color>
 </resources>

@@ -32,13 +32,20 @@ object BlockedDomainList {
         "sharethrough.com", "sovrn.com", "adform.net", "advertising.com",
         "spotxchange.com", "improvedigital.com", "gumgum.com", "33across.com",
         "indexexchange.com", "sonobi.com", "triplelift.com", "contextweb.com",
+        "amazon-adsystem.com", "moatads.com", "adroll.com", "flashtalking.com",
+        "yieldlab.net", "adition.com", "smaato.com",
 
         // --- Pop/redirect ad networks ---
         "propellerads.com", "popads.net", "poptm.com", "adcash.com",
         "exoclick.com", "juicyads.com", "trafficjunky.com", "adsterra.com",
 
-        // --- Explicit mobile ad host (avoid blocking broad SDK/company roots) ---
-        "unityads.unity3d.com",
+        // --- Explicit mobile in-app ad SDK hosts (the ad-serving endpoints
+        // only, not the vendors' broader company/developer domains, so we
+        // never risk blocking an app's actual login/data/sync traffic) ---
+        "unityads.unity3d.com", "ads.unity3d.com", "pubnative.net",
+        "applovin.com", "applvn.com", "chartboost.com", "vungle.com",
+        "ironsrc.com", "supersonicads.com", "startapp.com", "adcolony.com",
+        "mintegral.com", "inmobi.com",
 
         // --- Video ad servers ---
         "2mdn.net", "aniview.com", "springserve.com"

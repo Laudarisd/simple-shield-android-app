@@ -12,22 +12,31 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemePreference.apply(this)
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        UiInsets.apply(binding.root)
 
         val preferences = getSharedPreferences("app_settings", MODE_PRIVATE)
-        binding.startOnBootSwitch.isChecked = preferences.getBoolean("start_on_boot", true)
         binding.localStatsSwitch.isChecked = preferences.getBoolean("local_stats", true)
+        binding.blocklistStatus.text = getString(R.string.blocklist_status, DomainBlocklist.ruleCount(this))
+
+        when (ThemePreference.selected(this)) {
+            ThemePreference.LIGHT -> binding.lightThemeOption.isChecked = true
+            else -> binding.forestThemeOption.isChecked = true
+        }
+        binding.themeOptions.setOnCheckedChangeListener { _, checkedId ->
+            val selected = if (checkedId == R.id.lightThemeOption) ThemePreference.LIGHT else ThemePreference.FOREST
+            if (selected != ThemePreference.selected(this)) ThemePreference.select(this, selected)
+        }
 
         val save = {
             preferences.edit {
-                putBoolean("start_on_boot", binding.startOnBootSwitch.isChecked)
                 putBoolean("local_stats", binding.localStatsSwitch.isChecked)
             }
         }
-        listOf(binding.startOnBootSwitch, binding.localStatsSwitch)
-            .forEach { toggle -> toggle.setOnCheckedChangeListener { _, _ -> save() } }
+        binding.localStatsSwitch.setOnCheckedChangeListener { _, _ -> save() }
         populateAppExclusions()
         binding.backButton.setOnClickListener { finish() }
     }
@@ -39,6 +48,7 @@ class SettingsActivity : AppCompatActivity() {
             .distinctBy { it.activityInfo.packageName }
             .sortedBy { it.loadLabel(packageManager).toString().lowercase() }
         val excluded = AppExclusionStore.packages(this)
+        val horizontalPadding = (8 * resources.displayMetrics.density).toInt()
 
         binding.excludedAppsContainer.removeAllViews()
         apps.forEach { app ->
@@ -47,8 +57,8 @@ class SettingsActivity : AppCompatActivity() {
                 text = app.loadLabel(packageManager)
                 isChecked = packageName in excluded
                 setTextColor(getColor(R.color.forest_paper))
-                minHeight = (56 * resources.displayMetrics.density).toInt()
-                setPadding(8, 0, 8, 0)
+                minHeight = (48 * resources.displayMetrics.density).toInt()
+                setPadding(horizontalPadding, 0, horizontalPadding, 0)
                 setOnCheckedChangeListener { _, checked ->
                     AppExclusionStore.setExcluded(this@SettingsActivity, packageName, checked)
                     binding.reconnectNotice.visibility = View.VISIBLE

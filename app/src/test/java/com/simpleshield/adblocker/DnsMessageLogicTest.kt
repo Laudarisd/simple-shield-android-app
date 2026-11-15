@@ -1,6 +1,7 @@
 package com.simpleshield.adblocker
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 /**
@@ -54,5 +55,33 @@ class DnsMessageLogicTest {
         val response = DnsMessageLogic.buildBlockedResponse(query)
         val answerCount = ((response[6].toInt() and 0xFF) shl 8) or (response[7].toInt() and 0xFF)
         assertEquals(0, answerCount)
+    }
+
+    @Test
+    fun `SERVFAIL response uses response code 2`() {
+        val response = DnsMessageLogic.buildErrorResponse(
+            DnsMessageLogic.buildTestQuery("example.com"),
+            responseCode = 2,
+        )
+        assertEquals(2, response[3].toInt() and 0x0F)
+    }
+
+    @Test
+    fun `truncated question is rejected`() {
+        val truncated = DnsMessageLogic.buildTestQuery("example.com").copyOf(15)
+        assertThrows(IllegalArgumentException::class.java) {
+            DnsMessageLogic.extractQueriedDomain(truncated)
+        }
+    }
+
+    @Test
+    fun `compression pointer loop is rejected`() {
+        val query = byteArrayOf(
+            0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0,
+            0xC0.toByte(), 12, 0, 1, 0, 1,
+        )
+        assertThrows(IllegalArgumentException::class.java) {
+            DnsMessageLogic.extractQueriedDomain(query)
+        }
     }
 }

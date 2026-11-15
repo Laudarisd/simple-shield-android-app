@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light navigation-bar icons are supported from Android 8.1 (API 27). -->
+    <style name="Theme.SimpleShield" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/forest_accent</item>
+        <item name="colorPrimaryDark">@color/forest_background</item>
+        <item name="colorAccent">@color/forest_accent</item>
+        <item name="colorControlActivated">@color/forest_accent</item>
+        <item name="android:navigationBarColor">@color/forest_background</item>
+        <item name="android:statusBarColor">@color/forest_background</item>
+        <item name="android:windowLightStatusBar">@bool/light_system_bars</item>
+        <item name="android:windowLightNavigationBar">@bool/light_system_bars</item>
+        <item name="android:windowBackground">@color/forest_background</item>
+    </style>
+</resources>

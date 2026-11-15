@@ -26,6 +26,9 @@ import com.simpleshield.adblocker.databinding.ActivityMainBinding
  * DNS lookups — see the comment at the top of that file for what it does
  * and doesn't have access to). Android shows its own system permission
  * dialog for this; we don't (and can't) skip or customize it.
+ *
+ * Protection runs for up to 24 hours per activation. The app contains no ad
+ * SDK and starts protection immediately after the required permissions.
  */
 class MainActivity : AppCompatActivity() {
 
@@ -72,9 +75,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        ThemePreference.apply(this)
         super.onCreate(savedInstanceState)
         viewBinding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(viewBinding.root)
+        UiInsets.apply(viewBinding.root)
+        DomainBlocklist.updateIfDue(this)
 
         viewBinding.blockingToggleButton.setOnClickListener {
             if (!isBlockingOn) {
@@ -83,9 +89,6 @@ class MainActivity : AppCompatActivity() {
                 stopAdBlockingService()
             }
         }
-        viewBinding.pauseFiveButton.setOnClickListener { pauseProtection(5) }
-        viewBinding.pauseFifteenButton.setOnClickListener { pauseProtection(15) }
-
         viewBinding.protectionHalo.setOnClickListener {
             viewBinding.blockingToggleButton.performClick()
         }
@@ -158,34 +161,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun startAdBlockingService() {
         val serviceIntent = Intent(this, AdBlockVpnService::class.java)
-        ProtectionPauseScheduler.cancel(this)
-        ProtectionStateStore.setActive(this, true)
         ContextCompat.startForegroundService(this, serviceIntent)
-        updateToggleUiState(isBlockingOn = true)
+        // The service publishes active=true only after the VPN interface is
+        // established. Do not claim protection while startup is still pending.
     }
 
     private fun stopAdBlockingService() {
-        // An explicit stop means stay stopped, including after reboot.
-        getSharedPreferences("app_settings", MODE_PRIVATE)
-            .edit()
-            .putBoolean("start_on_boot", false)
-            .apply()
         // Send an explicit stop command so the service closes the VPN
         // interface and foreground notification before terminating.
         startService(
             Intent(this, AdBlockVpnService::class.java)
                 .setAction(AdBlockVpnService.ACTION_STOP_SERVICE),
-        )
-        ProtectionStateStore.setActive(this, false)
-        updateToggleUiState(isBlockingOn = false)
-    }
-
-    private fun pauseProtection(minutes: Int) {
-        if (!isBlockingOn) return
-        ProtectionPauseScheduler.schedule(this, minutes)
-        startService(
-            Intent(this, AdBlockVpnService::class.java)
-                .setAction(AdBlockVpnService.ACTION_PAUSE_SERVICE),
         )
         ProtectionStateStore.setActive(this, false)
         updateToggleUiState(isBlockingOn = false)
@@ -206,6 +192,5 @@ class MainActivity : AppCompatActivity() {
             ContextCompat.getColor(this, if (isBlockingOn) R.color.stop_red else R.color.forest_accent),
         )
         viewBinding.protectionHalo.setBackgroundResource(if (isBlockingOn) R.drawable.bg_protection_halo else R.drawable.bg_protection_halo_off)
-        viewBinding.pauseActions.visibility = if (isBlockingOn) android.view.View.VISIBLE else android.view.View.GONE
     }
 }

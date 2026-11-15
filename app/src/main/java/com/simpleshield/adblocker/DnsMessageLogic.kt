@@ -1,84 +1,121 @@
 package com.simpleshield.adblocker
 
-// DnsMessageLogic.kt
-//
-// Pure DNS-message parsing/building logic — no Android dependencies. This
-// exact logic was compiled and run standalone (outside Android) to verify
-// correctness against test cases before being added to this project — see
-// DnsMessageLogicTest.kt in src/test for the same checks, runnable here via
-// `./gradlew test`.
-//
-// DNS message format (RFC 1035 §4.1):
-//   Header (12 bytes): ID(2) Flags(2) QDCOUNT(2) ANCOUNT(2) NSCOUNT(2) ARCOUNT(2)
-//   Question section: QNAME (length-prefixed labels, ending in a 0x00 byte),
-//                      QTYPE(2), QCLASS(2)
-
+/**
+ * Small, dependency-free DNS codec used by the VPN service.
+ *
+ * Input comes from other apps and is untrusted, so all counts, lengths,
+ * compression pointers, and array boundaries are validated before use.
+ */
 object DnsMessageLogic {
+    private const val HEADER_SIZE = 12
+    private const val MAX_POINTER_JUMPS = 32
 
-    /** Reads the domain name being queried out of a raw DNS query message. */
-    fun extractQueriedDomain(dnsMessage: ByteArray): String {
-        require(dnsMessage.size >= 12) { "DNS message too short to contain a header" }
+    private data class NameResult(val value: String, val nextOffset: Int)
 
-        var position = 12 // skip the fixed 12-byte header
+    /** Returns the first queried domain from a standard single-question query. */
+    fun extractQueriedDomain(message: ByteArray): String {
+        validateQueryHeader(message)
+        val name = readName(message, HEADER_SIZE)
+        require(name.nextOffset + 4 <= message.size) { "DNS question is truncated" }
+        require(name.value.isNotBlank()) { "DNS question has an empty name" }
+        return name.value.lowercase()
+    }
+
+    /** Builds an NXDOMAIN response for a domain intentionally blocked by Shield. */
+    fun buildBlockedResponse(query: ByteArray): ByteArray =
+        buildErrorResponse(query, responseCode = 3)
+
+    /** Builds an error response preserving the ID, RD bit, and question. */
+    fun buildErrorResponse(query: ByteArray, responseCode: Int): ByteArray {
+        require(responseCode in 0..15) { "DNS response code must fit in four bits" }
+        validateQueryHeader(query)
+        val name = readName(query, HEADER_SIZE)
+        val questionEnd = name.nextOffset + 4
+        require(questionEnd <= query.size) { "DNS question is truncated" }
+
+        val recursionDesired = query[2].toInt() and 0x01
+        val header = byteArrayOf(
+            query[0], query[1],
+            (0x80 or recursionDesired).toByte(), // response + original RD
+            (0x80 or responseCode).toByte(), // recursion available + RCODE
+            0, 1, // one question
+            0, 0, // no answers
+            0, 0, // no authority records
+            0, 0, // no additional records
+        )
+        return header + query.copyOfRange(HEADER_SIZE, questionEnd)
+    }
+
+    private fun validateQueryHeader(message: ByteArray) {
+        require(message.size >= HEADER_SIZE) { "DNS message is shorter than its header" }
+        require(message[2].toInt() and 0x80 == 0) { "Expected a DNS query" }
+        require(readUInt16(message, 4) == 1) { "Only single-question DNS messages are supported" }
+    }
+
+    /** Reads a possibly compressed name and returns its wire continuation. */
+    private fun readName(message: ByteArray, startOffset: Int): NameResult {
         val labels = mutableListOf<String>()
+        val visited = mutableSetOf<Int>()
+        var cursor = startOffset
+        var nextOffset = -1
+        var jumps = 0
 
         while (true) {
-            require(position < dnsMessage.size) { "Malformed DNS message: ran off the end while reading QNAME" }
-            val labelLength = dnsMessage[position].toInt() and 0xFF
-            position += 1
-            if (labelLength == 0) break // 0x00 terminates the QNAME
-            require(position + labelLength <= dnsMessage.size) { "Malformed DNS message: label runs past end of message" }
-            val labelBytes = dnsMessage.copyOfRange(position, position + labelLength)
-            labels.add(String(labelBytes, Charsets.US_ASCII))
-            position += labelLength
+            require(cursor in message.indices) { "DNS name runs past the message" }
+            val length = message[cursor].toInt() and 0xFF
+            when {
+                length == 0 -> {
+                    if (nextOffset < 0) nextOffset = cursor + 1
+                    break
+                }
+                length and 0xC0 == 0xC0 -> {
+                    require(cursor + 1 < message.size) { "Truncated DNS compression pointer" }
+                    val pointer = ((length and 0x3F) shl 8) or
+                        (message[cursor + 1].toInt() and 0xFF)
+                    require(pointer < message.size) { "DNS compression pointer is out of bounds" }
+                    require(visited.add(pointer) && ++jumps <= MAX_POINTER_JUMPS) {
+                        "DNS compression pointer loop"
+                    }
+                    if (nextOffset < 0) nextOffset = cursor + 2
+                    cursor = pointer
+                }
+                length and 0xC0 != 0 -> error("Invalid DNS label marker")
+                else -> {
+                    require(length <= 63 && cursor + 1 + length <= message.size) {
+                        "Invalid or truncated DNS label"
+                    }
+                    val label = message.copyOfRange(cursor + 1, cursor + 1 + length)
+                        .toString(Charsets.US_ASCII)
+                    require(label.all { it.code in 0x21..0x7E }) { "DNS label contains invalid bytes" }
+                    labels += label
+                    require(labels.sumOf { it.length } + labels.size - 1 <= 253) { "DNS name is too long" }
+                    cursor += 1 + length
+                }
+            }
         }
-
-        return labels.joinToString(".")
+        return NameResult(labels.joinToString("."), nextOffset)
     }
 
-    /**
-     * Builds an NXDOMAIN ("this domain does not exist") response for a
-     * blocked domain, reusing the original query's transaction ID and
-     * question section so the requesting app recognizes it as the answer
-     * to its own query.
-     */
-    fun buildBlockedResponse(originalQuery: ByteArray): ByteArray {
-        require(originalQuery.size >= 12) { "Query too short" }
+    private fun readUInt16(bytes: ByteArray, offset: Int): Int =
+        ((bytes[offset].toInt() and 0xFF) shl 8) or (bytes[offset + 1].toInt() and 0xFF)
 
-        val transactionId = originalQuery.copyOfRange(0, 2)
-        // Flags: response=1, opcode=standard query, RD+RA set, RCODE=3 (NXDOMAIN)
-        val flags = byteArrayOf(0x81.toByte(), 0x83.toByte())
-        val qdCount = byteArrayOf(0x00, 0x01)
-        val anCount = byteArrayOf(0x00, 0x00) // zero answers
-        val nsCount = byteArrayOf(0x00, 0x00)
-        val arCount = byteArrayOf(0x00, 0x00)
-
-        // Copy the question section verbatim from the original query.
-        var position = 12
-        while (originalQuery[position].toInt() != 0) {
-            position += 1 + (originalQuery[position].toInt() and 0xFF)
-        }
-        val questionSectionEnd = position + 1 + 4 // +1 terminator, +4 QTYPE/QCLASS
-        val questionSection = originalQuery.copyOfRange(12, questionSectionEnd)
-
-        return transactionId + flags + qdCount + anCount + nsCount + arCount + questionSection
-    }
-
-    /** Test helper only: builds a minimal, valid DNS query for a domain. */
+    /** Test helper that builds a minimal A/IN query. */
     fun buildTestQuery(domain: String, transactionId: Int = 1): ByteArray {
+        require(domain.isNotBlank())
         val header = byteArrayOf(
-            (transactionId shr 8).toByte(), (transactionId and 0xFF).toByte(),
-            0x01, 0x00, // standard query, recursion desired
-            0x00, 0x01, // QDCOUNT = 1
-            0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            (transactionId shr 8).toByte(), transactionId.toByte(),
+            0x01, 0x00, 0x00, 0x01,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
         )
-        var question = ByteArray(0)
-        for (label in domain.split(".")) {
-            question += byteArrayOf(label.length.toByte()) + label.toByteArray(Charsets.US_ASCII)
-        }
-        question += byteArrayOf(0x00)             // terminator
-        question += byteArrayOf(0x00, 0x01, 0x00, 0x01) // QTYPE=A, QCLASS=IN
+        val question = buildList<Byte> {
+            domain.trimEnd('.').split('.').forEach { label ->
+                require(label.length in 1..63)
+                add(label.length.toByte())
+                addAll(label.toByteArray(Charsets.US_ASCII).toList())
+            }
+            add(0.toByte())
+            addAll(listOf(0.toByte(), 1.toByte(), 0.toByte(), 1.toByte()))
+        }.toByteArray()
         return header + question
     }
 }
-
