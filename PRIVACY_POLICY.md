@@ -1,5 +1,7 @@
 # Shield - Ad Blocker Privacy Policy
 
+Published at: https://laudarisd.github.io/simple-shield-android-app/
+
 Last updated: November 15, 2026
 
 Shield - Ad Blocker is a local DNS-filtering application. It uses Android's

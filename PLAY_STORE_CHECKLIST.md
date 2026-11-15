@@ -2,7 +2,8 @@
 
 ## Before creating the release
 
-- Publish `PRIVACY_POLICY.md` at a stable public HTTPS URL.
+- Privacy policy published at
+  `https://laudarisd.github.io/simple-shield-android-app/`.
 - Verify the permanent application ID `io.github.laudarisd.shield`; it cannot
   be changed after the first Play release.
 - Set a new `versionCode` for every upload and a user-facing `versionName`.

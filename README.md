@@ -47,7 +47,8 @@ passwords.
 ## Privacy
 
 Shield has no remote VPN server and does not collect or sell personal data.
-See the [privacy policy](index.md) for details.
+See the [published privacy policy](https://laudarisd.github.io/simple-shield-android-app/)
+for details.
 
 ## License
 
