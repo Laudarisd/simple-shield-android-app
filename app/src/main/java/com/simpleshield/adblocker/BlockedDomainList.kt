@@ -38,6 +38,16 @@ object BlockedDomainList {
         // --- Pop/redirect ad networks ---
         "propellerads.com", "popads.net", "poptm.com", "adcash.com",
         "exoclick.com", "juicyads.com", "trafficjunky.com", "adsterra.com",
+        "hilltopads.net", "hilltopads.com", "clickadu.com", "clickadilla.com",
+        "clickaine.com", "galaksion.com", "popcash.net", "popmyads.com",
+        "propellerclick.com", "onclickads.net", "onclickperformance.com",
+        "ad-maven.com", "bidvertiser.com", "revenuehits.com", "adskeeper.com",
+        "a-ads.com", "adspyglass.com", "trafficstars.com", "tsyndicate.com",
+        "exosrv.com", "exdynsrv.com", "realsrv.com", "pemsrv.com",
+        "twinrdsrv.com", "dtscout.com",
+        // Adsterra's rotating ad-serving domains
+        "profitableratecpmnetwork.com", "highperformanceformat.com",
+        "effectivegatecpm.com", "effectiveratecpm.com", "highrevenuegate.com",
 
         // --- Explicit mobile in-app ad SDK hosts (the ad-serving endpoints
         // only, not the vendors' broader company/developer domains, so we

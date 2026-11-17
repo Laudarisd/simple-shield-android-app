@@ -401,6 +401,9 @@ class AdBlockVpnService : VpnService() {
                         physicalDnsEndpoints = refreshedEndpoints
                     }
                     lastDnsEndpointRefreshElapsedMs = now
+                    // Protection can stay on for many hours; keep the rules
+                    // fresh without waiting for the next manual start.
+                    DomainBlocklist.updateIfDue(this@AdBlockVpnService)
                 }
             }
         }

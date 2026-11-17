@@ -18,4 +18,14 @@ Tiuxo ads hosts
 https://github.com/tiuxo/hosts
 Licensed under CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
 
+The downloaded (not bundled) domain set additionally includes:
+
+HaGeZi Pop-Up Ads and Pro DNS blocklists
+https://github.com/hagezi/dns-blocklists
+Licensed under GPL-3.0: https://github.com/hagezi/dns-blocklists/blob/main/LICENSE
+
+oisd small
+https://oisd.nl
+License: https://github.com/sjhgvr/oisd/blob/main/LICENSE
+
 The source lists are normalized, combined, and deduplicated for DNS matching.

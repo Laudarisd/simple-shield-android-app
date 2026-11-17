@@ -13,13 +13,28 @@ object DomainBlocklist {
     private const val UPDATE_FILE = "production_domains.txt"
     private const val PREFS = "blocklist"
     private const val LAST_UPDATE = "last_update"
-    private const val UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1000L
+    private const val SOURCES_VERSION_KEY = "sources_version"
+
+    // Bump whenever `sources` changes so existing installs fetch the new
+    // lists on the next start instead of waiting out the 24-hour interval.
+    private const val SOURCES_VERSION = 3
+    // Pop-up ad networks register new domains daily and the lists that track
+    // them publish several times a day, so stale rules miss the newest ones.
+    private const val UPDATE_INTERVAL_MS = 8 * 60 * 60 * 1000L
     private const val MINIMUM_VALID_RULES = 8_000
     private val sources = listOf(
         "https://raw.githubusercontent.com/AdAway/adaway.github.io/master/hosts.txt",
         "https://raw.githubusercontent.com/StevenBlack/hosts/master/data/StevenBlack/hosts",
         "https://raw.githubusercontent.com/bigdargon/hostsVN/master/option/hosts-VN",
         "https://raw.githubusercontent.com/tiuxo/hosts/master/ads",
+        // Pop-up/redirect ad networks used by streaming and link sites. The
+        // hosts-format lists above only name individual subdomains, which
+        // these networks rotate constantly; these two list the registrable
+        // domains, so matches() also covers every subdomain.
+        "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/popupads-onlydomains.txt",
+        "https://small.oisd.nl/domainswild2",
+        // Broad ad/tracker coverage, maintained to avoid breaking sites.
+        "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/pro-onlydomains.txt",
     )
     private val updating = AtomicBoolean(false)
     private val updateExecutor = Executors.newSingleThreadExecutor { task ->
@@ -47,9 +62,11 @@ object DomainBlocklist {
 
     fun updateIfDue(context: Context) {
         val appContext = context.applicationContext
-        val lastUpdate = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getLong(LAST_UPDATE, 0L)
-        if (System.currentTimeMillis() - lastUpdate < UPDATE_INTERVAL_MS || !updating.compareAndSet(false, true)) return
+        val prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val lastUpdate = prefs.getLong(LAST_UPDATE, 0L)
+        val sourcesUnchanged = prefs.getInt(SOURCES_VERSION_KEY, 1) == SOURCES_VERSION
+        val updatedRecently = System.currentTimeMillis() - lastUpdate < UPDATE_INTERVAL_MS
+        if ((sourcesUnchanged && updatedRecently) || !updating.compareAndSet(false, true)) return
 
         updateExecutor.execute {
             try {
@@ -70,7 +87,9 @@ object DomainBlocklist {
                 check(temporary.renameTo(appContext.getFileStreamPath(UPDATE_FILE))) { "Could not install rule update" }
                 domains = refreshed
                 appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-                    .putLong(LAST_UPDATE, System.currentTimeMillis()).apply()
+                    .putLong(LAST_UPDATE, System.currentTimeMillis())
+                    .putInt(SOURCES_VERSION_KEY, SOURCES_VERSION)
+                    .apply()
                 Log.i("SimpleShieldRules", "Installed ${refreshed.size} current blocking rules")
             } catch (error: Exception) {
                 Log.w("SimpleShieldRules", "Rule refresh failed; keeping existing offline rules", error)
@@ -110,6 +129,13 @@ object DomainBlocklist {
 
     private fun parseInto(reader: java.io.BufferedReader, destination: MutableSet<String>) {
         reader.forEachLine { rawLine ->
+            // Fast path for one-domain-per-line lists (and our own saved
+            // file), which are hundreds of thousands of lines long.
+            if (rawLine.isNotEmpty() && rawLine.none { it == '#' || it.isWhitespace() }) {
+                val domain = rawLine.trimEnd('.').lowercase()
+                if (isValidDomain(domain)) destination.add(domain)
+                return@forEachLine
+            }
             val fields = rawLine.substringBefore('#').trim().split(Regex("\\s+")).filter(String::isNotEmpty)
             val candidate = when {
                 fields.size >= 2 && (fields[0] == "0.0.0.0" || fields[0] == "127.0.0.1") -> fields[1]
